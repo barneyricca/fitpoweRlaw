@@ -239,7 +239,7 @@ IPL_fit <- function(ts,       # data sequence
   # (from orbital decomposition, perhaps)
   # Create the subsequences
 
-  unique(ts) -> num_codes
+  unique(ts) -> num_codes  # Number of codes
 
   matrix(data = 0,
          nrow = length(C),
