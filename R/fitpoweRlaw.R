@@ -238,66 +238,53 @@ IPL_fit <- function(ts,       # data sequence
                     C = 1) {  # subsequences length
   # (from orbital decomposition, perhaps)
   # Create the subsequences
+  require(igraph)
+#  if(length(ts) != 1) {  # Split the codes
+#    unlist(strsplit(ts),
+#           split = "") ->
+#      ts
+#    vector(mode = "character", length = nchar(ts)) ->
+#      ts1
+#    for(i in 1:nchar(ts)) {
+#      substr(ts, i, i) -> ts1[i]
+#    }
+#  }
+#  ts1 -> ts
 
-  unique(ts) -> num_codes
 
-  matrix(data = 0,
-         nrow = length(C),
-         ncol = 3) -> fits_mat
-  c("alpha", "R2", "H_N") -> colnames(fits_mat)
+#  unique(ts) -> num_codes  # Number of codes
 
-  # Need a list of codes
-  code_list <- function(vec) {
-    # This should never be true; all video has something in it
-    if(is.na(vec[1]) == TRUE) {
-      return(NULL)
+#  matrix(data = 0,
+#         nrow = length(C),
+#         ncol = 3) -> fits_mat
+#  c("alpha", "R2", "H_N") -> colnames(fits_mat)
+
+  length(ts) - C + 1 -> len
+  if(len > 0) {
+    vector(mode = "character", length = len) ->
+      sub_seq
+    for (seq_start in 1:len) {
+      paste0(ts[seq_start:(seq_start + C - 1)],
+             collapse = "") ->
+        sub_seq[seq_start]
     }
-    if(length(which(is.na(vec[length(vec)]))) == 0) {
-      return(vec[1:length(vec)])
-    }
-    return(vec[1:(min(which(is.na(vec)))-1)])
+
+    table(sub_seq) -> freqs
+
+    # Compute the entropy; see note following this chunk
+    sum(freqs) -> Np1mC   # N (string length) plus 1 minus C
+    -sum((freqs/Np1mC * log(freqs/Np1mC, base = 2))) /
+      (Np1mC * num_codes^(-C) * log(num_codes^C, 2)) ->
+      Entropy
+
+    # Fit the data with a power law
+    igraph::fit_power_law(unname(freqs)) ->
+      fit_ls
+    fit_ls[[2]] -> Shape
+    fit_ls[[6]] -> Fit
+
   }
 
-  length(ts) -C + 1 -> len
-  vector(mode = "character", length = len) ->
-    sub_seq
-  for (seq_start in 1:len) {
-    paste0(ts[seq_start:(seq_start + C - 1)],
-           collapse = "") ->
-      sub_seq[seq_start]
-  }
-
-  table(sub_seq) -> freqs
-
-  # Compute the entropy; see note following this chunk
-  sum(freqs) -> Np1mC   # N (string length) plus 1 minus C
-  -sum((freqs/Np1mC * log(freqs/Np1mC, base = 2))) /
-    (Np1mC * num_codes^(-C) * log(num_codes^C, 2)) ->
-    Entropy
-
-  # Fit the data with a power law
-  displ$new(unname(freqs)) -> m_pl
-  if (length(unique(m_pl$dat)) > 2) {
-    estimate_xmin(m_pl) -> est
-
-      # The next occasionally happens; I think it is when the distribution
-      #  is flat.
-      if (m_pl$getXmin() > length(m_pl$internal$freq)) {
-        1 -> est
-      }
-      m_pl$setXmin(est)
-
-      if (!is.null(m_pl$getPars())) {
-        # Get the exponent
-        m_pl$getPars() -> Shape
-
-        # Calculate R^2
-        # Should this be used?
-        cor(log(m_pl$internal$values), log(m_pl$internal$cum_n),
-            method = "pearson"
-        )^2 -> R2
-      }
-   }
-  return(c(Shape, R2, Entropy))
+  return(c(Shape, Fit, Entropy))
 }
 
