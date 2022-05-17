@@ -270,8 +270,10 @@ IPL_fit <- function(ts,       # data sequence
     }
 
     table(sub_seq) -> freqs
+    length(unique(sub_seq)) -> num_codes
 
     # Compute the entropy; see note following this chunk
+    # More
     sum(freqs) -> Np1mC   # N (string length) plus 1 minus C
     -sum((freqs/Np1mC * log(freqs/Np1mC, base = 2))) /
       (Np1mC * num_codes^(-C) * log(num_codes^C, 2)) ->
@@ -284,7 +286,8 @@ IPL_fit <- function(ts,       # data sequence
     fit_ls[[6]] -> Fit
 
   }
-
-  return(c(Shape, Fit, Entropy))
+  c(Shape, Fit, Entropy) -> results
+  c("Shape", "KS gof", "Entopy") -> names(results)
+  return(results)
 }
 
