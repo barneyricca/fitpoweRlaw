@@ -239,26 +239,6 @@ IPL_fit <- function(ts,       # data sequence
   # (from orbital decomposition, perhaps)
   # Create the subsequences
   require(igraph)
-#  if(length(ts) != 1) {  # Split the codes
-#    unlist(strsplit(ts),
-#           split = "") ->
-#      ts
-#    vector(mode = "character", length = nchar(ts)) ->
-#      ts1
-#    for(i in 1:nchar(ts)) {
-#      substr(ts, i, i) -> ts1[i]
-#    }
-#  }
-#  ts1 -> ts
-
-
-#  unique(ts) -> num_codes  # Number of codes
-
-#  matrix(data = 0,
-#         nrow = length(C),
-#         ncol = 3) -> fits_mat
-#  c("alpha", "R2", "H_N") -> colnames(fits_mat)
-
   length(ts) - C + 1 -> len
   if(len > 0) {
     vector(mode = "character", length = len) ->
@@ -274,10 +254,6 @@ IPL_fit <- function(ts,       # data sequence
 
     # Compute the entropy; see note following this chunk
     # More
-    sum(freqs) -> Np1mC   # N (string length) plus 1 minus C
-    -sum((freqs/Np1mC * log(freqs/Np1mC, base = 2))) /
-      (Np1mC * num_codes^(-C) * log(num_codes^C, 2)) ->
-      Entropy
 
     # Fit the data with a power law
     igraph::fit_power_law(unname(freqs)) ->
@@ -286,8 +262,6 @@ IPL_fit <- function(ts,       # data sequence
     fit_ls[[6]] -> Fit
 
   }
-  c(Shape, Fit, Entropy) -> results
-  c("Shape", "KS gof", "Entopy") -> names(results)
-  return(results)
+  return(fit_ls)
 }
 
